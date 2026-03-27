@@ -5,6 +5,7 @@ import json
 import os
 
 app = Flask(__name__)
+session = requests.Session()
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
@@ -15,13 +16,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 def index():
     return send_from_directory(BASE_DIR, "index.html")
 
-def build_prompt(product):
-    return f"""You are an elite product strategy AI agent specialising in Kotler's marketing frameworks.
-Research the product "{product}" thoroughly using Google Search.
+SYSTEM_INSTRUCTION = """You are an elite product strategy AI agent specialising in Kotler's marketing frameworks.
+Your task is to thoroughly research the provided product using Google Search.
 
 Search for: features, pricing, competitors, customer reviews, market size, market growth, target audience, positioning, sales data.
 
-Respond ONLY with a valid JSON object — no markdown, no preamble, no extra text:
+Respond ONLY with a valid JSON object matching this schema:
 {{
   "product_summary": "one concise line describing what the product is",
   "category": "industry/category",
@@ -108,10 +108,11 @@ def analyse():
         return jsonify({"error": "Missing product or API key"}), 400
 
     try:
-        response = requests.post(
+        response = session.post(
             f"{GEMINI_API_URL}?key={api_key}",
             json={
-                "contents": [{"parts": [{"text": build_prompt(product)}]}],
+                "systemInstruction": {"parts": [{"text": SYSTEM_INSTRUCTION}]},
+                "contents": [{"parts": [{"text": f"Research the product '{product}' thoroughly using Google Search."}]}],
                 "tools": [{"google_search": {}}],
                 "generationConfig": {
                     "temperature": 0.3,
@@ -141,16 +142,93 @@ def analyse():
             if "web" in chunk:
                 sources.append(chunk["web"])
 
-        clean = re.sub(r'```json\n?|```', '', raw_text).strip()
-        match = re.search(r'\{[\s\S]*\}', clean)
-        parsed = json.loads(match.group(0) if match else clean)
+        # Clean response string to extract valid JSON
+        start_idx = raw_text.find('{')
+        end_idx = raw_text.rfind('}')
+        if start_idx != -1 and end_idx != -1:
+            raw_text = raw_text[start_idx:end_idx+1]
+        
+        parsed = json.loads(raw_text)
         parsed["sources"] = sources
         parsed["product_name"] = product
 
         return jsonify(parsed)
 
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"API connection error: {str(e)}"}), 500
     except json.JSONDecodeError:
         return jsonify({"error": "Could not parse AI response. Please try again."}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/compare", methods=["POST"])
+def compare():
+    data = request.json
+    p1 = data.get("product1", "")
+    p2 = data.get("product2", "")
+    api_key = data.get("api_key", "")
+
+    if not p1 or not p2 or not api_key:
+        return jsonify({"error": "Missing product or API key"}), 400
+
+    base_schema = SYSTEM_INSTRUCTION[SYSTEM_INSTRUCTION.find('{'):SYSTEM_INSTRUCTION.rfind('}')+1]
+    
+    comp_inst = f"""You are an elite product strategy AI agent.
+Your task is to thoroughly research TWO provided products using Google Search.
+Respond ONLY with a valid JSON object matching this schema:
+{{
+  "product_a": {base_schema},
+  "product_b": {base_schema}
+}}
+Use real researched data wherever possible."""
+
+    try:
+        response = session.post(
+            f"{GEMINI_API_URL}?key={api_key}",
+            json={
+                "systemInstruction": {"parts": [{"text": comp_inst}]},
+                "contents": [{"parts": [{"text": f"Research products '{p1}' and '{p2}' thoroughly using Google Search."}]}],
+                "tools": [{"google_search": {}}],
+                "generationConfig": {"temperature": 0.3, "maxOutputTokens": 8192}
+            },
+            timeout=150
+        )
+
+        if not response.ok:
+            return jsonify({"error": "Gemini API error"}), 400
+
+        res_json = response.json()
+        raw_text = ""
+        for part in res_json.get("candidates", [{}])[0].get("content", {}).get("parts", []):
+            if "text" in part:
+                raw_text += part["text"]
+
+        if not raw_text:
+            return jsonify({"error": "No response from Gemini."}), 500
+
+        sources = []
+        chunks = res_json.get("candidates", [{}])[0].get("groundingMetadata", {}).get("groundingChunks", [])
+        for chunk in chunks:
+            if "web" in chunk:
+                sources.append(chunk["web"])
+
+        # Clean response string to extract valid JSON
+        start_idx = raw_text.find('{')
+        end_idx = raw_text.rfind('}')
+        if start_idx != -1 and end_idx != -1:
+            raw_text = raw_text[start_idx:end_idx+1]
+            
+        parsed = json.loads(raw_text)
+        
+        if "product_a" in parsed:
+            parsed["product_a"]["sources"] = sources
+            parsed["product_a"]["product_name"] = p1
+        if "product_b" in parsed:
+            parsed["product_b"]["sources"] = sources
+            parsed["product_b"]["product_name"] = p2
+
+        return jsonify(parsed)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
