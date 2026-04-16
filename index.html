@@ -851,14 +851,18 @@ function renderPricingBiases(d, suffix='') {
 
 function renderPricingMoves(d, suffix='') {
   const m = ((d.pricing_intelligence || {}).task4_moves || []);
+  const imgUrl = d.product_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80';
   return `<div class="levels-grid">
     ${m.map((move, i) => `
-      <div class="level-row">
-        <div><div class="level-num">0${i+1}</div></div>
-        <div>
+      <div class="level-row" style="padding:0; overflow:hidden;">
+        <div style="background: url('${imgUrl}') center/cover no-repeat; position:relative; display:flex; align-items:center; justify-content:center; min-height:160px;">
+          <div style="position:absolute; inset:0; background:rgba(0,0,0,0.65);"></div>
+          <div class="level-num" style="position:relative; z-index:1; font-size:64px; background:none; -webkit-text-fill-color: #fff; color:#fff; text-shadow: 0 4px 16px rgba(0,0,0,0.8);">${i+1 < 10 ? '0'+(i+1) : (i+1)}</div>
+        </div>
+        <div style="padding: 24px 24px 24px 0;">
           <div class="level-content" style="font-size:18px; font-weight:700; color:var(--text-white); margin-bottom:12px;">${move.move}</div>
           <p><strong style="color:var(--text-dim)">Justification:</strong> ${move.justification}</p>
-          <p><strong class="tag purple" style="display:inline-block; margin-top:8px;">Expected Impact</strong> <span style="font-size:14px; color:var(--text-bright)">${move.impact}</span></p>
+          <p><strong class="tag purple" style="display:inline-block; margin-top:12px;">Expected Impact</strong> <span style="font-size:14px; color:var(--text-bright); margin-left:12px;">${move.impact}</span></p>
         </div>
       </div>
     `).join('')}

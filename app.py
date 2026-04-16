@@ -25,6 +25,7 @@ Search for: features, pricing, competitors, customer reviews, market size, marke
 Respond ONLY with a valid JSON object matching this schema:
 {{
   "product_summary": "one concise line describing what the product is",
+  "product_image_url": "valid public image URL of this product (jpg/png), extract directly from search results",
   "category": "industry/category",
   "classification": {{
     "buying_type": "convenience | shopping | specialty | unsought",
