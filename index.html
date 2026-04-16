@@ -241,10 +241,17 @@ strong { color: var(--text-white); font-weight: 600; }
       <span class="api-hint">Free at aistudio.google.com</span>
     </div>
 
-    <!-- Mode toggle -->
-    <div class="mode-row">
-      <button class="mode-btn active" id="modeSingle" onclick="setMode('single')">🔍 Single Product</button>
-      <button class="mode-btn" id="modeCompare" onclick="setMode('compare')">⚔️ Compare Two Products</button>
+    <!-- Mode & Type toggles -->
+    <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
+      <div class="mode-row" style="margin-bottom:0px;">
+        <button class="mode-btn active" id="modeSingle" onclick="setMode('single')">🔍 Single Product</button>
+        <button class="mode-btn" id="modeCompare" onclick="setMode('compare')">⚔️ Compare Two</button>
+      </div>
+      <div class="mode-row" style="margin-bottom:0px;">
+        <button class="mode-btn active" id="typeStrategy" onclick="setType('strategy')">📊 Strategy</button>
+        <button class="mode-btn" id="typePricing" onclick="setType('pricing')">💰 Pricing</button>
+        <button class="mode-btn" id="typeBoth" onclick="setType('both')">🧠 Full Analysis</button>
+      </div>
     </div>
 
     <!-- Search inputs -->
@@ -313,50 +320,35 @@ strong { color: var(--text-white); font-weight: 600; }
     </div>
 
     <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab active" onclick="tab(0)"><span class="tab-num">1</span> Classification</button>
-      <button class="tab" onclick="tab(1)"><span class="tab-num">2</span> Five Levels</button>
-      <button class="tab" onclick="tab(2)"><span class="tab-num">3</span> Differentiation</button>
-      <button class="tab" onclick="tab(3)"><span class="tab-num">4</span> Market Data</button>
-      <button class="tab" onclick="tab(4)"><span class="tab-num">5</span> Competitors</button>
-      <button class="tab" onclick="tab(5)"><span class="tab-num">6</span> Sentiment</button>
-      <button class="tab" onclick="tab(6)"><span class="tab-num">7</span> Pricing</button>
+    <div class="tabs" id="tabsContainer">
+      <button class="tab active" data-type="strategy" onclick="tab(0)"><span class="tab-num">1</span> Classification</button>
+      <button class="tab" data-type="strategy" onclick="tab(1)"><span class="tab-num">2</span> Five Levels</button>
+      <button class="tab" data-type="strategy" onclick="tab(2)"><span class="tab-num">3</span> Differentiation</button>
+      <button class="tab" data-type="strategy" onclick="tab(3)"><span class="tab-num">4</span> Market Data</button>
+      <button class="tab" data-type="strategy" onclick="tab(4)"><span class="tab-num">5</span> Competitors</button>
+      <button class="tab" data-type="strategy" onclick="tab(5)"><span class="tab-num">6</span> Sentiment</button>
+      <button class="tab" data-type="strategy" onclick="tab(6)"><span class="tab-num">7</span> Pricing Strategy</button>
+
+      <button class="tab" data-type="pricing" onclick="tab(7)"><span class="tab-num">8</span> Landscape</button>
+      <button class="tab" data-type="pricing" onclick="tab(8)"><span class="tab-num">9</span> 6-Step Framework</button>
+      <button class="tab" data-type="pricing" onclick="tab(9)"><span class="tab-num">10</span> Biases</button>
+      <button class="tab" data-type="pricing" onclick="tab(10)"><span class="tab-num">11</span> Rec Moves</button>
     </div>
 
-    <!-- Panel 1: Classification -->
-    <div class="panel active" id="p0">
-      <div id="classWrap"></div>
-    </div>
+    <!-- Strategy Panels -->
+    <div class="panel active" id="p0" data-type="strategy"><div id="classWrap"></div></div>
+    <div class="panel" id="p1" data-type="strategy"><div id="levelsWrap"></div></div>
+    <div class="panel" id="p2" data-type="strategy"><div id="diffWrap"></div></div>
+    <div class="panel" id="p3" data-type="strategy"><div id="marketWrap"></div></div>
+    <div class="panel" id="p4" data-type="strategy"><div id="compWrap"></div></div>
+    <div class="panel" id="p5" data-type="strategy"><div id="sentWrap"></div></div>
+    <div class="panel" id="p6" data-type="strategy"><div id="priceWrap"></div></div>
 
-    <!-- Panel 2: Five Levels -->
-    <div class="panel" id="p1">
-      <div id="levelsWrap"></div>
-    </div>
-
-    <!-- Panel 3: Differentiation -->
-    <div class="panel" id="p2">
-      <div id="diffWrap"></div>
-    </div>
-
-    <!-- Panel 4: Market Data -->
-    <div class="panel" id="p3">
-      <div id="marketWrap"></div>
-    </div>
-
-    <!-- Panel 5: Competitors -->
-    <div class="panel" id="p4">
-      <div id="compWrap"></div>
-    </div>
-
-    <!-- Panel 6: Sentiment -->
-    <div class="panel" id="p5">
-      <div id="sentWrap"></div>
-    </div>
-
-    <!-- Panel 7: Pricing -->
-    <div class="panel" id="p6">
-      <div id="priceWrap"></div>
-    </div>
+    <!-- Pricing Panels -->
+    <div class="panel" id="p7" data-type="pricing"><div id="landWrap"></div></div>
+    <div class="panel" id="p8" data-type="pricing"><div id="frameWrap"></div></div>
+    <div class="panel" id="p9" data-type="pricing"><div id="biasWrap"></div></div>
+    <div class="panel" id="p10" data-type="pricing"><div id="movesWrap"></div></div>
 
   </div><!-- /results -->
 </main>
@@ -364,6 +356,7 @@ strong { color: var(--text-white); font-weight: 600; }
 <script>
 // ── State ──
 let currentMode = 'single';
+let currentType = 'strategy';
 let chartInstances = {};
 let analysisHistory = JSON.parse(localStorage.getItem('strategyHistory') || '[]');
 
@@ -376,6 +369,21 @@ function setMode(m) {
   document.getElementById('product2Wrap').style.display = m === 'compare' ? 'block' : 'none';
   document.getElementById('productInput').placeholder = m === 'compare'
     ? 'Product A e.g. boAt Airdopes...' : 'e.g. boAt Airdopes, Tata Neu, iPhone 15...';
+    
+  if (m === 'compare' && currentType === 'both') {
+      setType('strategy'); // Prevent highly intensive combo
+  }
+}
+
+function setType(t) {
+  currentType = t;
+  document.getElementById('typeStrategy').classList.toggle('active', t === 'strategy');
+  document.getElementById('typePricing').classList.toggle('active', t === 'pricing');
+  document.getElementById('typeBoth').classList.toggle('active', t === 'both');
+  
+  if (currentMode === 'compare' && t === 'both') {
+      setMode('single'); // Prevent highly intensive combo
+  }
 }
 
 function setP(v) { document.getElementById('productInput').value = v; }
@@ -609,11 +617,14 @@ function renderMarket(d, suffix='') {
   setTimeout(() => makeLineChart(chartId, m.growth_labels||[], m.growth_values||[], 'Market Growth Index'), 100);
   return `
     <div class="stat-row">
-      <div class="stat-box"><div class="stat-label">Market Size</div>
+      <div class="stat-box" ${m.market_size_url ? `onclick="window.open('${m.market_size_url}', '_blank')"` : ''} style="cursor:${m.market_size_url ? 'pointer' : 'default'}">
+        <div class="stat-label">Market Size ${m.market_size_url ? '🔗' : ''}</div>
         <div class="stat-value" style="font-size:16px">${m.market_size||'—'}</div></div>
-      <div class="stat-box"><div class="stat-label">CAGR</div>
+      <div class="stat-box" ${m.growth_rate_url ? `onclick="window.open('${m.growth_rate_url}', '_blank')"` : ''} style="cursor:${m.growth_rate_url ? 'pointer' : 'default'}">
+        <div class="stat-label">CAGR ${m.growth_rate_url ? '🔗' : ''}</div>
         <div class="stat-value">${m.market_growth_rate||'—'}</div></div>
-      <div class="stat-box"><div class="stat-label">Est. Share</div>
+      <div class="stat-box" ${m.market_share_url ? `onclick="window.open('${m.market_share_url}', '_blank')"` : ''} style="cursor:${m.market_share_url ? 'pointer' : 'default'}">
+        <div class="stat-label">Est. Share ${m.market_share_url ? '🔗' : ''}</div>
         <div class="stat-value">${m.product_market_share||'—'}</div></div>
     </div>
     <h3>Market Growth Trend</h3>
@@ -643,8 +654,8 @@ function renderCompetitors(d, suffix='') {
         <th>Competitor</th><th>Price</th><th>Share</th><th>Strength</th><th>Weakness</th><th>Threat</th>
       </tr></thead>
       <tbody>
-        ${comps.map(c => `<tr>
-          <td class="comp-name">${c.name}</td>
+        ${comps.map(c => `<tr ${c.source_url ? `onclick="window.open('${c.source_url}', '_blank')"` : ''} style="cursor:${c.source_url ? 'pointer' : 'default'}; transition: background 0.2s;">
+          <td class="comp-name">${c.name} ${c.source_url ? '<span style="font-size:11px">🔗</span>' : ''}</td>
           <td>${c.price||'—'}</td>
           <td>${c.market_share||'—'}</td>
           <td>${c.key_strength||'—'}</td>
@@ -715,8 +726,8 @@ function renderPricing(d, suffix='') {
   const pos = pr.price_position || 'mid-range';
   return `
     <div class="stat-row" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
-      <div class="stat-box">
-        <div class="stat-label">Product Price</div>
+      <div class="stat-box" ${pr.product_price_url ? `onclick="window.open('${pr.product_price_url}', '_blank')"` : ''} style="cursor:${pr.product_price_url ? 'pointer' : 'default'}">
+        <div class="stat-label">Product Price ${pr.product_price_url ? '🔗' : ''}</div>
         <div class="stat-value" style="font-size:18px">${pr.product_price||'—'}</div>
       </div>
       <div class="stat-box">
@@ -730,6 +741,105 @@ function renderPricing(d, suffix='') {
     <div class="chart-wrap" style="height:${Math.max(160, items.length*44)}px"><canvas id="${barId}"></canvas></div>
     <h3 style="margin-top:14px">Pricing Strategy</h3>
     <p>${pr.price_summary||''}</p>`;
+}
+
+// ── Pricing Intelligence Module Renderers ──
+function renderPricingLandscape(d, suffix='') {
+  const p = (d.pricing_intelligence || {}).task1_landscape || {};
+  const comps = p.competitors || [];
+  return `
+    <h3>Landscape Summary</h3><p>${p.summary||'—'}</p>
+    <div class="stat-row" style="grid-template-columns:1fr;margin-bottom:16px">
+      <div class="stat-box" ${p.price_range_url ? `onclick="window.open('${p.price_range_url}', '_blank')"` : ''} style="cursor:${p.price_range_url ? 'pointer' : 'default'}">
+        <div class="stat-label">Category Price Range ${p.price_range_url ? '🔗' : ''}</div>
+        <div class="stat-value" style="font-size:18px">${p.category_price_range||'—'}</div>
+      </div>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>Competitor Name</th><th>Current Price</th></tr></thead>
+      <tbody>
+        ${comps.map(c => `<tr ${c.source_url ? `onclick="window.open('${c.source_url}', '_blank')"` : ''} style="cursor:${c.source_url ? 'pointer' : 'default'}; transition: background 0.2s;">
+          <td class="comp-name">${c.name} ${c.source_url ? '<span style="font-size:11px">🔗</span>' : ''}</td>
+          <td><span class="tag green" style="font-size:14px; padding:6px 12px;">${c.price||'—'}</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function renderPricingFramework(d, suffix='') {
+  const f = (d.pricing_intelligence || {}).task2_framework || {};
+  return `
+    <div class="diff-list">
+      <div class="diff-item">
+        <div class="diff-dim">Step 1: Objective</div>
+        <div class="diff-title">${f.step1_objective?.objective||'—'}</div>
+        <div class="diff-why">${f.step1_objective?.justification||'—'}</div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-dim">Step 2: Demand Determination</div>
+        <div class="diff-title">${f.step2_demand?.elasticity||'—'}</div>
+        <div class="diff-why">${f.step2_demand?.reasoning||'—'}</div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-dim">Step 3: Cost Estimates</div>
+        <div class="diff-title">VC: ${f.step3_costs?.variable_costs||'—'} | FC: ${f.step3_costs?.fixed_costs||'—'}</div>
+        <div class="diff-why">${f.step3_costs?.implications||'—'}</div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-dim">Step 4: Competitor Offers</div>
+        <div class="diff-title">Positioning: ${f.step4_competitors?.positioning||'—'}</div>
+        <div class="diff-why">${f.step4_competitors?.comparison||'—'}</div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-dim">Step 5: Pricing Method</div>
+        <div class="diff-title" style="color:var(--accent)">${(f.step5_method?.method||'—').toUpperCase()}</div>
+        <div class="diff-why">${f.step5_method?.justification||'—'}</div>
+      </div>
+    </div>
+    <div class="banner" style="margin-top:24px; background:rgba(16,185,129,0.05); border-color:rgba(16,185,129,0.2);">
+      <div>
+        <div class="banner-name" style="color:#34d399; font-size:20px; font-family:'Inter',sans-serif; margin-bottom:4px; font-weight:700;">Step 6: Final Price Recommendation</div>
+        <div class="banner-name" style="font-size:36px; margin-bottom:12px;">${f.step6_final_price?.recommendation||'—'}</div>
+        <div class="banner-meta" style="color:var(--text-bright)">${f.step6_final_price?.justification||'—'}</div>
+      </div>
+    </div>`;
+}
+
+function renderPricingBiases(d, suffix='') {
+  const b = (d.pricing_intelligence || {}).task3_biases || {};
+  const flagHTML = (bias, title) => `
+    <div class="level-row" style="grid-template-columns:1fr; gap:16px;">
+      <div>
+        <div class="level-label" style="font-size:14px; margin-bottom:8px;">${title}</div>
+        <div>${bias?.present 
+            ? '<span class="tag red" style="padding:6px 12px">⚠️ BIAS DETECTED</span>' 
+            : '<span class="tag green" style="padding:6px 12px">✅ NOT PRESENT</span>'}
+        </div>
+      </div>
+      <div class="level-content" style="padding-top:12px; border-top:1px solid var(--border)">${bias?.explanation||'—'}</div>
+    </div>
+  `;
+  return `<div class="levels-grid">
+    ${flagHTML(b.anchoring_bias, 'Anchoring Bias')}
+    ${flagHTML(b.decoy_effect, 'Decoy Effect')}
+    ${flagHTML(b.loss_aversion, 'Loss Aversion')}
+  </div>`;
+}
+
+function renderPricingMoves(d, suffix='') {
+  const m = ((d.pricing_intelligence || {}).task4_moves || []);
+  return `<div class="levels-grid">
+    ${m.map((move, i) => `
+      <div class="level-row">
+        <div><div class="level-num">0${i+1}</div></div>
+        <div>
+          <div class="level-content" style="font-size:18px; font-weight:700; color:var(--text-white); margin-bottom:12px;">${move.move}</div>
+          <p><strong style="color:var(--text-dim)">Justification:</strong> ${move.justification}</p>
+          <p><strong class="tag purple" style="display:inline-block; margin-top:8px;">Expected Impact</strong> <span style="font-size:14px; color:var(--text-bright)">${move.impact}</span></p>
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
 }
 
 // ── Render all panels ──
@@ -773,16 +883,40 @@ function renderAll(product, d1, d2) {
   document.getElementById('compWrap').innerHTML = '';
   document.getElementById('sentWrap').innerHTML = '';
   document.getElementById('priceWrap').innerHTML = '';
+  document.getElementById('landWrap').innerHTML = '';
+  document.getElementById('frameWrap').innerHTML = '';
+  document.getElementById('biasWrap').innerHTML = '';
+  document.getElementById('movesWrap').innerHTML = '';
 
-  render('classWrap',  renderClassification, 'A', 'B');
-  render('levelsWrap', renderLevels,         'A', 'B');
-  render('diffWrap',   renderDiff,           'A', 'B');
-  render('marketWrap', renderMarket,         'A', 'B');
-  render('compWrap',   renderCompetitors,    'A', 'B');
-  render('sentWrap',   renderSentiment,      'A', 'B');
-  render('priceWrap',  renderPricing,        'A', 'B');
+  const runType = d1.analysis_type_run || currentType || 'strategy';
+  
+  // Filter Tabs Visibility
+  document.querySelectorAll('.tab').forEach((t) => {
+    const isS = t.dataset.type === 'strategy';
+    const isP = t.dataset.type === 'pricing';
+    if (runType === 'strategy') { t.style.display = isS ? 'flex' : 'none'; }
+    else if (runType === 'pricing') { t.style.display = isP ? 'flex' : 'none'; }
+    else { t.style.display = 'flex'; }
+  });
 
-  tab(0);
+  if (runType === 'strategy' || runType === 'both') {
+    render('classWrap',  renderClassification, 'A', 'B');
+    render('levelsWrap', renderLevels,         'A', 'B');
+    render('diffWrap',   renderDiff,           'A', 'B');
+    render('marketWrap', renderMarket,         'A', 'B');
+    render('compWrap',   renderCompetitors,    'A', 'B');
+    render('sentWrap',   renderSentiment,      'A', 'B');
+    render('priceWrap',  renderPricing,        'A', 'B');
+  }
+
+  if (runType === 'pricing' || runType === 'both') {
+    render('landWrap',  renderPricingLandscape, 'A', 'B');
+    render('frameWrap', renderPricingFramework, 'A', 'B');
+    render('biasWrap',  renderPricingBiases,    'A', 'B');
+    render('movesWrap', renderPricingMoves,     'A', 'B');
+  }
+
+  tab(runType === 'pricing' ? 7 : 0);
 }
 
 // ── Main run ──
@@ -807,7 +941,7 @@ async function run() {
     const res = await fetch('/analyse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product: p, api_key: apiKey })
+      body: JSON.stringify({ product: p, api_key: apiKey, analysis_type: currentType })
     });
     const d = await res.json();
     if (d.error) throw new Error(d.error);
@@ -818,7 +952,7 @@ async function run() {
     const res = await fetch('/compare', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product1: p1, product2: p2, api_key: apiKey })
+      body: JSON.stringify({ product1: p1, product2: p2, api_key: apiKey, analysis_type: currentType })
     });
     const d = await res.json();
     if (d.error) throw new Error(d.error);

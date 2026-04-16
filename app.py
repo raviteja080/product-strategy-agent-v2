@@ -52,10 +52,13 @@ Respond ONLY with a valid JSON object matching this schema:
   ],
   "market_data": {{
     "market_size": "current total addressable market size with source e.g. $4.2B (2024)",
+    "market_size_url": "url to verify market size",
     "market_growth_rate": "CAGR percentage e.g. 12.4%",
+    "growth_rate_url": "url to verify CAGR",
     "growth_labels": ["2021", "2022", "2023", "2024", "2025E"],
     "growth_values": [100, 115, 132, 148, 168],
     "product_market_share": "estimated share e.g. 8%",
+    "market_share_url": "url to verify market share",
     "market_share_value": 8,
     "target_segment": "primary target customer segment description",
     "market_summary": "2-3 sentence summary of the market landscape"
@@ -65,6 +68,7 @@ Respond ONLY with a valid JSON object matching this schema:
       "name": "Competitor name",
       "price": "price range e.g. Rs.2,999",
       "price_value": 2999,
+      "source_url": "url to verify competitor price",
       "market_share": "e.g. 22%",
       "market_share_value": 22,
       "key_strength": "their main competitive advantage",
@@ -83,6 +87,7 @@ Respond ONLY with a valid JSON object matching this schema:
   }},
   "pricing": {{
     "product_price": "actual price e.g. Rs.1,299",
+    "product_price_url": "url to verify product price",
     "product_price_value": 1299,
     "price_position": "budget | mid-range | premium | luxury",
     "price_summary": "analysis of pricing strategy and value perception",
@@ -97,62 +102,150 @@ Respond ONLY with a valid JSON object matching this schema:
 
 Use real researched data wherever possible. For growth_values use index 100 as base year and show relative growth. Include 3-5 competitors. Be specific and accurate."""
 
+PRICING_INSTRUCTION = """You are an elite pricing intelligence AI agent.
+Your task is to thoroughly research the pricing of the provided product using Google Search.
+If previous product strategy data is provided as context, use it to inform your pricing analysis.
+
+Search for: official prices, competitor prices, recent price changes, customer complaints about price, regional prices, and discounts/promotions.
+
+Respond ONLY with a valid JSON object matching this schema:
+{
+  "pricing_intelligence": {
+    "task1_landscape": {
+      "summary": "1-2 paragraph structured summary of the pricing landscape including named competitors, price range, and notable patterns",
+      "competitors": [
+        {"name": "Competitor 1", "price": "e.g. Rs.1,999", "price_value": 1999, "source_url": "url verifying this price"},
+        {"name": "Competitor 2", "price": "e.g. Rs.2,499", "price_value": 2499, "source_url": "url verifying this price"},
+        {"name": "Competitor 3", "price": "e.g. Rs.1,799", "price_value": 1799, "source_url": "url verifying this price"}
+      ],
+      "category_price_range": "e.g. Rs.1,500 - Rs.3,000",
+      "price_range_url": "url verifying this range"
+    },
+    "task2_framework": {
+      "step1_objective": {
+        "objective": "partial cost recovery | profit margin maximization | revenue maximization | quality leadership | quantity maximization | status quo | survival",
+        "justification": "evidence from research"
+      },
+      "step2_demand": {
+        "elasticity": "highly elastic | relatively inelastic",
+        "reasoning": "signals from research supporting assessment"
+      },
+      "step3_costs": {
+        "variable_costs": "high | low",
+        "fixed_costs": "high | low",
+        "implications": "what this implies for pricing flexibility"
+      },
+      "step4_competitors": {
+        "positioning": "above | below | in line",
+        "comparison": "comparing to named competitors"
+      },
+      "step5_method": {
+        "method": "competitive | good-better-best | loss-leader | optional-product | penetration | premium | product-bundle | skim | markup | target-return",
+        "justification": "why this method fits best"
+      },
+      "step6_final_price": {
+        "recommendation": "specific final price or price range (must use numbers)",
+        "justification": "1 paragraph justification tying the previous 5 steps together"
+      }
+    },
+    "task3_biases": {
+      "anchoring_bias": {"present": true, "explanation": "how it is used (or null if not)"},
+      "decoy_effect": {"present": false, "explanation": "honest absence or how it is used"},
+      "loss_aversion": {"present": true, "explanation": "how it is used"}
+    },
+    "task4_moves": [
+      {
+        "move": "concrete, actionable move with specific numbers (e.g. Raise entry tier from Rs.1,999 to Rs.2,199)",
+        "justification": "why this makes sense strategically",
+        "impact": "expected impact on revenue/perception"
+      },
+      { "move": "...", "justification": "...", "impact": "..." },
+      { "move": "...", "justification": "...", "impact": "..." }
+    ]
+  }
+}
+
+Use real researched data. Provide specific numbers and named competitors. Do not guess confidently if no data exists; instead, state honest uncertainty.
+"""
+
+def extract_json_from_gemini(raw_text):
+    start_idx = raw_text.find('{')
+    end_idx = raw_text.rfind('}')
+    if start_idx != -1 and end_idx != -1:
+        return raw_text[start_idx:end_idx+1]
+    return raw_text
+
+def call_gemini(api_key, instruction, prompt):
+    response = session.post(
+        f"{GEMINI_API_URL}?key={api_key}",
+        json={
+            "systemInstruction": {"parts": [{"text": instruction}]},
+            "contents": [{"parts": [{"text": prompt}]}],
+            "tools": [{"google_search": {}}],
+            "generationConfig": {
+                "temperature": 0.3,
+                "maxOutputTokens": 6000
+            }
+        },
+        timeout=120
+    )
+    if not response.ok:
+        err = response.json()
+        raise Exception(err.get("error", {}).get("message", "Gemini API error"))
+        
+    result = response.json()
+    raw_text = ""
+    for part in result.get("candidates", [{}])[0].get("content", {}).get("parts", []):
+        if "text" in part:
+            raw_text += part["text"]
+            
+    sources = []
+    chunks = result.get("candidates", [{}])[0].get("groundingMetadata", {}).get("groundingChunks", [])
+    for chunk in chunks:
+        if "web" in chunk:
+            sources.append(chunk["web"])
+            
+    if not raw_text:
+        raise Exception("No response from Gemini.")
+        
+    parsed_json = json.loads(extract_json_from_gemini(raw_text))
+    return parsed_json, sources
+
+
 
 @app.route("/analyse", methods=["POST"])
 def analyse():
     data = request.json
     product = data.get("product", "")
     api_key = data.get("api_key", "")
+    analysis_type = data.get("analysis_type", "strategy") # 'strategy', 'pricing', 'both'
 
     if not product or not api_key:
         return jsonify({"error": "Missing product or API key"}), 400
 
     try:
-        response = session.post(
-            f"{GEMINI_API_URL}?key={api_key}",
-            json={
-                "systemInstruction": {"parts": [{"text": SYSTEM_INSTRUCTION}]},
-                "contents": [{"parts": [{"text": f"Research the product '{product}' thoroughly using Google Search."}]}],
-                "tools": [{"google_search": {}}],
-                "generationConfig": {
-                    "temperature": 0.3,
-                    "maxOutputTokens": 6000
-                }
-            },
-            timeout=90
-        )
-
-        if not response.ok:
-            err = response.json()
-            return jsonify({"error": err.get("error", {}).get("message", "Gemini API error")}), 400
-
-        result = response.json()
-
-        raw_text = ""
-        for part in result.get("candidates", [{}])[0].get("content", {}).get("parts", []):
-            if "text" in part:
-                raw_text += part["text"]
-
-        if not raw_text:
-            return jsonify({"error": "No response from Gemini. Please try again."}), 500
-
-        sources = []
-        chunks = result.get("candidates", [{}])[0].get("groundingMetadata", {}).get("groundingChunks", [])
-        for chunk in chunks:
-            if "web" in chunk:
-                sources.append(chunk["web"])
-
-        # Clean response string to extract valid JSON
-        start_idx = raw_text.find('{')
-        end_idx = raw_text.rfind('}')
-        if start_idx != -1 and end_idx != -1:
-            raw_text = raw_text[start_idx:end_idx+1]
+        final_result = {}
+        all_sources = []
         
-        parsed = json.loads(raw_text)
-        parsed["sources"] = sources
-        parsed["product_name"] = product
+        if analysis_type in ["strategy", "both"]:
+            strategy_json, sources = call_gemini(api_key, SYSTEM_INSTRUCTION, f"Research the product '{product}' thoroughly using Google Search.")
+            final_result.update(strategy_json)
+            all_sources.extend(sources)
+            
+        if analysis_type in ["pricing", "both"]:
+            prompt = f"Research the pricing of the product '{product}' thoroughly using Google Search."
+            if analysis_type == "both":
+                prompt += f"\n\nHere is the Product Strategy context to use logically:\n{json.dumps(final_result)}"
+            
+            pricing_json, sources = call_gemini(api_key, PRICING_INSTRUCTION, prompt)
+            final_result.update(pricing_json)
+            all_sources.extend(sources)
 
-        return jsonify(parsed)
+        final_result["sources"] = all_sources
+        final_result["product_name"] = product
+        final_result["analysis_type_run"] = analysis_type
+
+        return jsonify(final_result)
 
     except requests.exceptions.RequestException as e:
         return jsonify({"error": f"API connection error: {str(e)}"}), 500
