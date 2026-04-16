@@ -166,10 +166,11 @@ Respond ONLY with a valid JSON object matching this schema:
       {
         "move": "concrete, actionable move with specific numbers (e.g. Raise entry tier from Rs.1,999 to Rs.2,199)",
         "justification": "why this makes sense strategically",
-        "impact": "expected impact on revenue/perception"
+        "impact": "revenue impact | market share impact | margin impact",
+        "detailed_execution": "a comprehensive 3-5 sentence step-by-step description of exactly how to execute this strategic move, the risks involved, and what pitfalls to avoid"
       },
-      { "move": "...", "justification": "...", "impact": "..." },
-      { "move": "...", "justification": "...", "impact": "..." }
+      { "move": "...", "justification": "...", "impact": "...", "detailed_execution": "..." },
+      { "move": "...", "justification": "...", "impact": "...", "detailed_execution": "..." }
     ]
   }
 }
