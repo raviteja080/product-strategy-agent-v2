@@ -112,6 +112,7 @@ Search for: official prices, competitor prices, recent price changes, customer c
 
 Respond ONLY with a valid JSON object matching this schema:
 {
+  "product_image_url": "valid public image URL of this product (jpg/png), extract directly from search results",
   "pricing_intelligence": {
     "task1_landscape": {
       "summary": "1-2 paragraph structured summary of the pricing landscape including named competitors, price range, and notable patterns",
