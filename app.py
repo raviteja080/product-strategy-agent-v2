@@ -125,28 +125,34 @@ Respond ONLY with a valid JSON object matching this schema:
     "task2_framework": {
       "step1_objective": {
         "objective": "partial cost recovery | profit margin maximization | revenue maximization | quality leadership | quantity maximization | status quo | survival",
-        "justification": "evidence from research"
+        "justification": "evidence from research",
+        "detailed_explanation": "a comprehensive 3-5 sentence description of why this objective is appropriate"
       },
       "step2_demand": {
         "elasticity": "highly elastic | relatively inelastic",
-        "reasoning": "signals from research supporting assessment"
+        "reasoning": "signals from research supporting assessment",
+        "detailed_explanation": "a comprehensive 3-5 sentence description of why this demand constraint holds true"
       },
       "step3_costs": {
         "variable_costs": "high | low",
         "fixed_costs": "high | low",
-        "implications": "what this implies for pricing flexibility"
+        "implications": "what this implies for pricing flexibility",
+        "detailed_explanation": "a comprehensive 3-5 sentence description justifying the cost baseline"
       },
       "step4_competitors": {
         "positioning": "above | below | in line",
-        "comparison": "comparing to named competitors"
+        "comparison": "comparing to named competitors",
+        "detailed_explanation": "a comprehensive 3-5 sentence description of why this positioning is validated"
       },
       "step5_method": {
         "method": "competitive | good-better-best | loss-leader | optional-product | penetration | premium | product-bundle | skim | markup | target-return",
-        "justification": "why this method fits best"
+        "justification": "why this method fits best",
+        "detailed_explanation": "a comprehensive 3-5 sentence description exploring why this pricing method makes the most economic sense"
       },
       "step6_final_price": {
         "recommendation": "specific final price or price range (must use numbers)",
-        "justification": "1 paragraph justification tying the previous 5 steps together"
+        "justification": "1 paragraph justification tying the previous 5 steps together",
+        "detailed_explanation": "a comprehensive 3-5 sentence explanation confirming why the final price mathematically and strategically fits"
       }
     },
     "task3_biases": {

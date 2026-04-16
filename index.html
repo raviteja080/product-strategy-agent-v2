@@ -144,6 +144,11 @@ strong { color: var(--text-white); font-weight: 600; }
 .diff-text { font-size: 15px; line-height: 1.7; color: var(--text-bright); margin-bottom: 16px; flex: 1;}
 .diff-why { font-size: 13px; color: var(--text-dim); line-height: 1.6; padding-top: 16px; border-top: 1px solid var(--border); }
 
+.framework-tile { background: rgba(16,21,31,0.5); backdrop-filter: blur(8px); border: 1px solid #d4af37; border-radius: 12px; padding: 24px; position: relative; transition: all 0.3s; display: flex; flex-direction: column; cursor: pointer; }
+.framework-tile:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(212,175,55,0.3); }
+.framework-detailed { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(212,175,55,0.2); font-size: 14px; color: var(--text-bright); line-height: 1.6; }
+.framework-tile.expanded .framework-detailed { display: block; animation: fadeUp 0.3s ease; }
+
 .chart-wrap { position: relative; height: 260px; margin-top: 16px; }
 .chart-wrap.tall { height: 320px; }
 
@@ -773,37 +778,43 @@ function renderPricingFramework(d, suffix='') {
   const f = (d.pricing_intelligence || {}).task2_framework || {};
   return `
     <div class="diff-list">
-      <div class="diff-item">
-        <div class="diff-dim">Step 1: Objective</div>
-        <div class="diff-title">${f.step1_objective?.objective||'—'}</div>
+      <div class="framework-tile" onclick="this.classList.toggle('expanded')">
+        <div class="diff-dim">Step 1: Objective (Click to expand)</div>
+        <div class="diff-title" style="color:#0f766e;">${f.step1_objective?.objective||'—'}</div>
         <div class="diff-why">${f.step1_objective?.justification||'—'}</div>
+        <div class="framework-detailed">${f.step1_objective?.detailed_explanation||'Wait for next analysis...'}</div>
       </div>
-      <div class="diff-item">
-        <div class="diff-dim">Step 2: Demand Determination</div>
-        <div class="diff-title">${f.step2_demand?.elasticity||'—'}</div>
+      <div class="framework-tile" onclick="this.classList.toggle('expanded')">
+        <div class="diff-dim">Step 2: Demand Determination (Click)</div>
+        <div class="diff-title" style="color:#0f766e;">${f.step2_demand?.elasticity||'—'}</div>
         <div class="diff-why">${f.step2_demand?.reasoning||'—'}</div>
+        <div class="framework-detailed">${f.step2_demand?.detailed_explanation||'Wait for next analysis...'}</div>
       </div>
-      <div class="diff-item">
-        <div class="diff-dim">Step 3: Cost Estimates</div>
-        <div class="diff-title">VC: ${f.step3_costs?.variable_costs||'—'} | FC: ${f.step3_costs?.fixed_costs||'—'}</div>
+      <div class="framework-tile" onclick="this.classList.toggle('expanded')">
+        <div class="diff-dim">Step 3: Cost Estimates (Click)</div>
+        <div class="diff-title" style="color:#0f766e;">VC: ${f.step3_costs?.variable_costs||'—'} | FC: ${f.step3_costs?.fixed_costs||'—'}</div>
         <div class="diff-why">${f.step3_costs?.implications||'—'}</div>
+        <div class="framework-detailed">${f.step3_costs?.detailed_explanation||'Wait for next analysis...'}</div>
       </div>
-      <div class="diff-item">
-        <div class="diff-dim">Step 4: Competitor Offers</div>
-        <div class="diff-title">Positioning: ${f.step4_competitors?.positioning||'—'}</div>
+      <div class="framework-tile" onclick="this.classList.toggle('expanded')">
+        <div class="diff-dim">Step 4: Competitor Offers (Click)</div>
+        <div class="diff-title" style="color:#0f766e;">Positioning: ${f.step4_competitors?.positioning||'—'}</div>
         <div class="diff-why">${f.step4_competitors?.comparison||'—'}</div>
+        <div class="framework-detailed">${f.step4_competitors?.detailed_explanation||'Wait for next analysis...'}</div>
       </div>
-      <div class="diff-item">
-        <div class="diff-dim">Step 5: Pricing Method</div>
-        <div class="diff-title" style="color:var(--accent)">${(f.step5_method?.method||'—').toUpperCase()}</div>
+      <div class="framework-tile" onclick="this.classList.toggle('expanded')">
+        <div class="diff-dim">Step 5: Pricing Method (Click)</div>
+        <div class="diff-title" style="color:#0f766e;">${(f.step5_method?.method||'—').toUpperCase()}</div>
         <div class="diff-why">${f.step5_method?.justification||'—'}</div>
+        <div class="framework-detailed">${f.step5_method?.detailed_explanation||'Wait for next analysis...'}</div>
       </div>
     </div>
-    <div class="banner" style="margin-top:24px; background:rgba(16,185,129,0.05); border-color:rgba(16,185,129,0.2);">
+    <div class="framework-tile" style="margin-top:24px; border-color: rgba(16,185,129,0.5);" onclick="this.classList.toggle('expanded')">
       <div>
-        <div class="banner-name" style="color:#34d399; font-size:20px; font-family:'Inter',sans-serif; margin-bottom:4px; font-weight:700;">Step 6: Final Price Recommendation</div>
-        <div class="banner-name" style="font-size:36px; margin-bottom:12px;">${f.step6_final_price?.recommendation||'—'}</div>
+        <div class="banner-name" style="color:#34d399; font-size:20px; font-family:'Inter',sans-serif; margin-bottom:4px; font-weight:700;">Step 6: Final Price Recommendation (Click)</div>
+        <div class="banner-name" style="font-size:36px; margin-bottom:12px; color:var(--text-white);">${f.step6_final_price?.recommendation||'—'}</div>
         <div class="banner-meta" style="color:var(--text-bright)">${f.step6_final_price?.justification||'—'}</div>
+        <div class="framework-detailed">${f.step6_final_price?.detailed_explanation||'Wait for next analysis...'}</div>
       </div>
     </div>`;
 }
