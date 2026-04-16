@@ -156,9 +156,9 @@ Respond ONLY with a valid JSON object matching this schema:
       }
     },
     "task3_biases": {
-      "anchoring_bias": {"present": true, "explanation": "how it is used (or null if not)"},
-      "decoy_effect": {"present": false, "explanation": "honest absence or how it is used"},
-      "loss_aversion": {"present": true, "explanation": "how it is used"}
+      "anchoring_bias": {"present": true, "explanation": "brief overview of usage or absence", "detailed_explanation": "a detailed 2-4 sentence description explaining why this bias presence/absence is correct based on evidence", "source_url": "URL validating this bias/strategy"},
+      "decoy_effect": {"present": false, "explanation": "brief overview of usage or absence", "detailed_explanation": "a detailed 2-4 sentence description explaining why this bias presence/absence is correct based on evidence", "source_url": "URL validating this bias/strategy"},
+      "loss_aversion": {"present": true, "explanation": "brief overview of usage or absence", "detailed_explanation": "a detailed 2-4 sentence description explaining why this bias presence/absence is correct based on evidence", "source_url": "URL validating this bias/strategy"}
     },
     "task4_moves": [
       {

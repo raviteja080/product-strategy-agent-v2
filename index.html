@@ -144,10 +144,15 @@ strong { color: var(--text-white); font-weight: 600; }
 .diff-text { font-size: 15px; line-height: 1.7; color: var(--text-bright); margin-bottom: 16px; flex: 1;}
 .diff-why { font-size: 13px; color: var(--text-dim); line-height: 1.6; padding-top: 16px; border-top: 1px solid var(--border); }
 
-.framework-tile { background: rgba(16,21,31,0.5); backdrop-filter: blur(8px); border: 1px solid #d4af37; border-radius: 12px; padding: 24px; position: relative; transition: all 0.3s; display: flex; flex-direction: column; cursor: pointer; }
+.framework-tile { background: rgba(16,21,31,0.5); backdrop-filter: blur(8px); border: 1px solid #d4af37; border-radius: 12px; padding: 24px; position: relative; transition: all 0.3s; display: flex; flex-direction: column; cursor: pointer; overflow: hidden; }
 .framework-tile:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(212,175,55,0.3); }
 .framework-detailed { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(212,175,55,0.2); font-size: 14px; color: var(--text-bright); line-height: 1.6; }
 .framework-tile.expanded .framework-detailed { display: block; animation: fadeUp 0.3s ease; }
+
+.bias-tile { background: rgba(16,21,31,0.5); backdrop-filter: blur(8px); border: 1px solid #39ff14; border-radius: 12px; padding: 24px; position: relative; transition: all 0.3s; display: flex; flex-direction: column; cursor: pointer; overflow: hidden; }
+.bias-tile:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(57,255,20,0.3); }
+.bias-detailed { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(57,255,20,0.2); font-size: 14px; color: var(--text-bright); line-height: 1.6; }
+.bias-tile.expanded .bias-detailed { display: block; animation: fadeUp 0.3s ease; }
 
 .chart-wrap { position: relative; height: 260px; margin-top: 16px; }
 .chart-wrap.tall { height: 320px; }
@@ -822,18 +827,22 @@ function renderPricingFramework(d, suffix='') {
 function renderPricingBiases(d, suffix='') {
   const b = (d.pricing_intelligence || {}).task3_biases || {};
   const flagHTML = (bias, title) => `
-    <div class="level-row" style="grid-template-columns:1fr; gap:16px;">
-      <div>
-        <div class="level-label" style="font-size:14px; margin-bottom:8px;">${title}</div>
+    <div class="bias-tile" onclick="this.classList.toggle('expanded')">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+        <div class="level-label" style="font-size:16px; margin-top:0; color:#39ff14;">${title} (Click to expand)</div>
         <div>${bias?.present 
-            ? '<span class="tag red" style="padding:6px 12px">⚠️ BIAS DETECTED</span>' 
-            : '<span class="tag green" style="padding:6px 12px">✅ NOT PRESENT</span>'}
+            ? '<span class="tag red" style="padding:6px 12px; font-weight:bold;">⚠️ DETECTED</span>' 
+            : '<span class="tag green" style="padding:6px 12px; font-weight:bold;">✅ NOT PRESENT</span>'}
         </div>
       </div>
-      <div class="level-content" style="padding-top:12px; border-top:1px solid var(--border)">${bias?.explanation||'—'}</div>
+      <div class="level-content" style="padding-top:12px; border-top:1px solid rgba(255,255,255,0.1)">${bias?.explanation||'—'}</div>
+      <div class="bias-detailed">
+        ${bias?.detailed_explanation||'Wait for next analysis...'}
+        ${bias?.source_url ? `<div style="margin-top:12px;"><a href="${bias.source_url}" target="_blank" style="color:#39ff14; text-decoration:underline; font-size:13px; font-weight:bold;" onclick="event.stopPropagation()">View Source Used 🔗</a></div>` : ''}
+      </div>
     </div>
   `;
-  return `<div class="levels-grid">
+  return `<div class="diff-list">
     ${flagHTML(b.anchoring_bias, 'Anchoring Bias')}
     ${flagHTML(b.decoy_effect, 'Decoy Effect')}
     ${flagHTML(b.loss_aversion, 'Loss Aversion')}
