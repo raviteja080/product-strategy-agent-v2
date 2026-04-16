@@ -226,7 +226,10 @@ def call_gemini(api_key, instruction, prompt):
     chunks = result.get("candidates", [{}])[0].get("groundingMetadata", {}).get("groundingChunks", [])
     for chunk in chunks:
         if "web" in chunk:
-            sources.append(chunk["web"])
+            web_data = chunk["web"]
+            if "uri" in web_data and web_data["uri"].startswith("/"):
+                web_data["uri"] = f"https://www.google.com{web_data['uri']}"
+            sources.append(web_data)
             
     if not raw_text:
         raise Exception("No response from Gemini.")
