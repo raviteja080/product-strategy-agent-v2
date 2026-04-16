@@ -350,6 +350,9 @@ strong { color: var(--text-white); font-weight: 600; }
     <div class="panel" id="p9" data-type="pricing"><div id="biasWrap"></div></div>
     <div class="panel" id="p10" data-type="pricing"><div id="movesWrap"></div></div>
 
+    <!-- Global Sources -->
+    <div id="globalSourcesWrap" style="margin-top: 40px;"></div>
+
   </div><!-- /results -->
 </main>
 
@@ -546,9 +549,9 @@ function threatClass(t) {
 
 function srcHTML(sources) {
   if (!sources?.length) return '';
-  return `<div class="sources"><div class="sources-label">Web Sources</div>
+  return `<div class="sources"><div class="sources-label">Research Sources Used</div>
     <div class="source-chips">
-      ${sources.slice(0,5).map(s => `<a class="source-chip" href="${s.uri}" target="_blank">${s.title||s.uri}</a>`).join('')}
+      ${sources.slice(0, 15).map(s => `<a class="source-chip" href="${s.uri}" target="_blank">${s.title||s.uri}</a>`).join('')}
     </div></div>`;
 }
 
@@ -872,7 +875,7 @@ function renderAll(product, d1, d2) {
       if (document.getElementById('ccn1')) document.getElementById('ccn1').textContent = d1.product_name||'Product A';
       if (document.getElementById('ccn2')) document.getElementById('ccn2').textContent = d2.product_name||'Product B';
     } else {
-      el.innerHTML = `<div class="card blue"><div class="card-body">${fn(d1, suffix1)}${srcHTML(d1.sources)}</div></div>`;
+      el.innerHTML = `<div class="card blue"><div class="card-body">${fn(d1, suffix1)}</div></div>`;
     }
   }
 
@@ -916,6 +919,7 @@ function renderAll(product, d1, d2) {
     render('movesWrap', renderPricingMoves,     'A', 'B');
   }
 
+  document.getElementById('globalSourcesWrap').innerHTML = srcHTML(d1.sources);
   tab(runType === 'pricing' ? 7 : 0);
 }
 

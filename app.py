@@ -66,7 +66,7 @@ Respond ONLY with a valid JSON object matching this schema:
   }},
   "competitors": [
     {{
-      "name": "Competitor name",
+      "name": "Distinct competing brand & product (NO different retailers of the same product)",
       "price": "price range e.g. Rs.2,999",
       "price_value": 2999,
       "source_url": "url to verify competitor price",
@@ -115,9 +115,9 @@ Respond ONLY with a valid JSON object matching this schema:
     "task1_landscape": {
       "summary": "1-2 paragraph structured summary of the pricing landscape including named competitors, price range, and notable patterns",
       "competitors": [
-        {"name": "Competitor 1", "price": "e.g. Rs.1,999", "price_value": 1999, "source_url": "url verifying this price"},
-        {"name": "Competitor 2", "price": "e.g. Rs.2,499", "price_value": 2499, "source_url": "url verifying this price"},
-        {"name": "Competitor 3", "price": "e.g. Rs.1,799", "price_value": 1799, "source_url": "url verifying this price"}
+        {"name": "Distinct competitor brand/product 1 (no retailers)", "price": "e.g. Rs.1,999", "price_value": 1999, "source_url": "url verifying this price"},
+        {"name": "Distinct competitor brand/product 2 (no retailers)", "price": "e.g. Rs.2,499", "price_value": 2499, "source_url": "url verifying this price"},
+        {"name": "Distinct competitor brand/product 3 (no retailers)", "price": "e.g. Rs.1,799", "price_value": 1799, "source_url": "url verifying this price"}
       ],
       "category_price_range": "e.g. Rs.1,500 - Rs.3,000",
       "price_range_url": "url verifying this range"
