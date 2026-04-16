@@ -203,6 +203,21 @@ strong { color: var(--text-white); font-weight: 600; }
 .error-box { background: rgba(244,63,94,0.05); border: 1px solid rgba(244,63,94,0.2); border-radius: 12px; padding: 24px; color: #fb7185; font-size: 14px; line-height: 1.8; animation: fadeUp 0.3s ease; display: flex; align-items: flex-start; gap: 12px;}
 .error-box::before { content: '⚠️'; font-size: 18px; }
 
+.cursor-glow {
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(212,175,55,0.06) 0%, rgba(59,130,246,0.02) 40%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 0; 
+  left: 0;
+  top: 0;
+  transition: opacity 0.5s ease;
+  will-change: transform;
+}
+
 .sk { background: linear-gradient(90deg, rgba(0,0,0,0.02) 25%, rgba(0,0,0,0.06) 50%, rgba(0,0,0,0.02) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; height: 16px; margin-bottom: 12px; }
 .sk.med { width: 75%; } .sk.short { width: 45%; }
 @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
@@ -221,6 +236,8 @@ strong { color: var(--text-white); font-weight: 600; }
 </style>
 </head>
 <body>
+
+<div class="cursor-glow" id="cursorGlow"></div>
 
 <header>
   <div class="brand">
@@ -1030,6 +1047,18 @@ async function run() {
   btn.disabled = false;
   btn.classList.remove('loading');
 }
+
+const cursorGlow = document.getElementById('cursorGlow');
+let mouseX = 0, mouseY = 0, glowX = 0, glowY = 0;
+document.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+function animateGlow() {
+  glowX += (mouseX - glowX) * 0.1;
+  glowY += (mouseY - glowY) * 0.1;
+  cursorGlow.style.transform = `translate(calc(${glowX}px - 50%), calc(${glowY}px - 50%))`;
+  requestAnimationFrame(animateGlow);
+}
+animateGlow();
+
 </script>
 </body>
 </html>
