@@ -176,7 +176,7 @@ def extract_json_from_gemini(raw_text):
         return raw_text[start_idx:end_idx+1]
     return raw_text
 
-def post_gemini_with_retry(api_key, json_payload, timeout=120, max_retries=3):
+def post_gemini_with_retry(api_key, json_payload, timeout=120, max_retries=5):
     for attempt in range(max_retries):
         try:
             response = session.post(
@@ -188,13 +188,13 @@ def post_gemini_with_retry(api_key, json_payload, timeout=120, max_retries=3):
                 err = response.json()
                 msg = err.get("error", {}).get("message", "Gemini API error")
                 if response.status_code in [429, 503, 500] and attempt < max_retries - 1:
-                    time.sleep(5 + (attempt * 3))
+                    time.sleep(10 + (attempt * 5))
                     continue
                 raise Exception(msg)
             return response.json()
         except requests.exceptions.RequestException as e:
             if attempt < max_retries - 1:
-                time.sleep(5 + (attempt * 3))
+                time.sleep(10 + (attempt * 5))
                 continue
             raise Exception(f"API connection error: {str(e)}")
 
@@ -249,6 +249,8 @@ def analyse():
             all_sources.extend(sources)
             
         if analysis_type in ["pricing", "both"]:
+            if analysis_type == "both":
+                time.sleep(3) # Give the API a brief rest to avoid concurrency rate limits
             prompt = f"Research the pricing of the product '{product}' thoroughly using Google Search."
             if analysis_type == "both":
                 prompt += f"\n\nHere is the Product Strategy context to use logically:\n{json.dumps(final_result)}"
