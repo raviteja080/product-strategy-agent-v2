@@ -69,7 +69,7 @@ Respond ONLY with a valid JSON object matching this schema:
       "name": "Distinct competing brand & product (NO different retailers of the same product)",
       "price": "price range e.g. Rs.2,999",
       "price_value": 2999,
-      "source_url": "url to verify competitor price",
+      "source_url": "url to verify competitor price (ensure this is a unique URL for this specific competitor)",
       "market_share": "e.g. 22%",
       "market_share_value": 22,
       "key_strength": "their main competitive advantage",
@@ -115,9 +115,9 @@ Respond ONLY with a valid JSON object matching this schema:
     "task1_landscape": {
       "summary": "1-2 paragraph structured summary of the pricing landscape including named competitors, price range, and notable patterns",
       "competitors": [
-        {"name": "Distinct competitor brand/product 1 (no retailers)", "price": "e.g. Rs.1,999", "price_value": 1999, "source_url": "url verifying this price"},
-        {"name": "Distinct competitor brand/product 2 (no retailers)", "price": "e.g. Rs.2,499", "price_value": 2499, "source_url": "url verifying this price"},
-        {"name": "Distinct competitor brand/product 3 (no retailers)", "price": "e.g. Rs.1,799", "price_value": 1799, "source_url": "url verifying this price"}
+        {"name": "Distinct competitor brand/product 1 (no retailers)", "price": "e.g. Rs.1,999", "price_value": 1999, "source_url": "explicit distinct URL for this competitor's price"},
+        {"name": "Distinct competitor brand/product 2 (no retailers)", "price": "e.g. Rs.2,499", "price_value": 2499, "source_url": "explicit distinct URL for this competitor's price"},
+        {"name": "Distinct competitor brand/product 3 (no retailers)", "price": "e.g. Rs.1,799", "price_value": 1799, "source_url": "explicit distinct URL for this competitor's price"}
       ],
       "category_price_range": "e.g. Rs.1,500 - Rs.3,000",
       "price_range_url": "url verifying this range"
@@ -244,14 +244,14 @@ def analyse():
         all_sources = []
         
         if analysis_type in ["strategy", "both"]:
-            strategy_json, sources = call_gemini(api_key, SYSTEM_INSTRUCTION, f"Research the product '{product}' thoroughly using Google Search.")
+            strategy_json, sources = call_gemini(api_key, SYSTEM_INSTRUCTION, f"Research the product '{product}' and its top competitors thoroughly using Google Search. FIND unique sources for each competitor.")
             final_result.update(strategy_json)
             all_sources.extend(sources)
             
         if analysis_type in ["pricing", "both"]:
             if analysis_type == "both":
                 time.sleep(3) # Give the API a brief rest to avoid concurrency rate limits
-            prompt = f"Research the pricing of the product '{product}' thoroughly using Google Search."
+            prompt = f"Research the pricing of the product '{product}' AND its active competitors thoroughly using Google Search. ENSURE you retrieve distinct, unique URLs for each competitor you list."
             if analysis_type == "both":
                 prompt += f"\n\nHere is the Product Strategy context to use logically:\n{json.dumps(final_result)}"
             
