@@ -3,6 +3,7 @@ import requests
 import re
 import json
 import os
+import time
 
 app = Flask(__name__)
 session = requests.Session()
@@ -175,25 +176,40 @@ def extract_json_from_gemini(raw_text):
         return raw_text[start_idx:end_idx+1]
     return raw_text
 
+def post_gemini_with_retry(api_key, json_payload, timeout=120, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            response = session.post(
+                f"{GEMINI_API_URL}?key={api_key}",
+                json=json_payload,
+                timeout=timeout
+            )
+            if not response.ok:
+                err = response.json()
+                msg = err.get("error", {}).get("message", "Gemini API error")
+                if response.status_code in [429, 503, 500] and attempt < max_retries - 1:
+                    time.sleep(5 + (attempt * 3))
+                    continue
+                raise Exception(msg)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            if attempt < max_retries - 1:
+                time.sleep(5 + (attempt * 3))
+                continue
+            raise Exception(f"API connection error: {str(e)}")
+
 def call_gemini(api_key, instruction, prompt):
-    response = session.post(
-        f"{GEMINI_API_URL}?key={api_key}",
-        json={
-            "systemInstruction": {"parts": [{"text": instruction}]},
-            "contents": [{"parts": [{"text": prompt}]}],
-            "tools": [{"google_search": {}}],
-            "generationConfig": {
-                "temperature": 0.3,
-                "maxOutputTokens": 6000
-            }
-        },
-        timeout=120
-    )
-    if not response.ok:
-        err = response.json()
-        raise Exception(err.get("error", {}).get("message", "Gemini API error"))
-        
-    result = response.json()
+    json_payload = {
+        "systemInstruction": {"parts": [{"text": instruction}]},
+        "contents": [{"parts": [{"text": prompt}]}],
+        "tools": [{"google_search": {}}],
+        "generationConfig": {
+            "temperature": 0.3,
+            "maxOutputTokens": 6000
+        }
+    }
+    result = post_gemini_with_retry(api_key, json_payload)
+    
     raw_text = ""
     for part in result.get("candidates", [{}])[0].get("content", {}).get("parts", []):
         if "text" in part:
@@ -276,21 +292,14 @@ Respond ONLY with a valid JSON object matching this schema:
 Use real researched data wherever possible."""
 
     try:
-        response = session.post(
-            f"{GEMINI_API_URL}?key={api_key}",
-            json={
-                "systemInstruction": {"parts": [{"text": comp_inst}]},
-                "contents": [{"parts": [{"text": f"Research products '{p1}' and '{p2}' thoroughly using Google Search."}]}],
-                "tools": [{"google_search": {}}],
-                "generationConfig": {"temperature": 0.3, "maxOutputTokens": 8192}
-            },
-            timeout=150
-        )
+        json_payload = {
+            "systemInstruction": {"parts": [{"text": comp_inst}]},
+            "contents": [{"parts": [{"text": f"Research products '{p1}' and '{p2}' thoroughly using Google Search."}]}],
+            "tools": [{"google_search": {}}],
+            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 8192}
+        }
+        res_json = post_gemini_with_retry(api_key, json_payload, timeout=150)
 
-        if not response.ok:
-            return jsonify({"error": "Gemini API error"}), 400
-
-        res_json = response.json()
         raw_text = ""
         for part in res_json.get("candidates", [{}])[0].get("content", {}).get("parts", []):
             if "text" in part:
